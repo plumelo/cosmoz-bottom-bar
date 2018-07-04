@@ -4,7 +4,7 @@
 
 	'use strict';
 
-	var
+	const
 		BOTTOM_BAR_TOOLBAR_SLOT = 'bottom-bar-toolbar',
 		BOTTOM_BAR_MENU_SLOT = 'bottom-bar-menu';
 
@@ -154,10 +154,10 @@
 
 		attached() {
 			// eslint-disable-next-line no-unused-vars
-			this._hiddenMutationObserver = new MutationObserver(function (mutations) {
+			this._hiddenMutationObserver = new MutationObserver(mutations => {
 				this._overflowWidth = undefined;
 				this._debounceLayoutActions();
-			}.bind(this));
+			});
 			this._nodeObserver = Polymer.dom(this.$.content).observeNodes(this._childrenUpdated.bind(this));
 			this._nodeObserverExtra = Polymer.dom(this.$.extraSlot).observeNodes(info => this.set('hasExtraItems', info.addedNodes.length > 0));
 			this._computedBarHeightKicker = 0;
@@ -200,7 +200,7 @@
 		},
 
 		_showHideBottomBar(visible, barHeight) {
-			var	translateY = visible ? 0 : barHeight;
+			const	translateY = visible ? 0 : barHeight;
 			this.translate3d('0px', translateY + 'px', '0px');
 		},
 
@@ -214,7 +214,7 @@
 		},
 
 		_childrenUpdated(info) {
-			var addedNodes = info.addedNodes.filter(this._isActionNode),
+			const addedNodes = info.addedNodes.filter(this._isActionNode),
 				removedNodes = info.removedNodes.filter(this._isActionNode);
 
 			if (addedNodes.length === 0 && removedNodes.length === 0) {
@@ -222,11 +222,8 @@
 			}
 
 			addedNodes
-				.filter(function (node) {
-					// ignore nodes that are moved between slots
-					return removedNodes.indexOf(node) === -1;
-				})
-				.forEach(function (node) {
+				.filter(node => removedNodes.indexOf(node) === -1) // ignore nodes that are moved between slots
+				.forEach(node => {
 					this._hiddenMutationObserver.observe(node, {
 						attributes: true,
 						attributeFilter: [
@@ -244,7 +241,7 @@
 		},
 
 		_toolbarMoveToStart(node) {
-			var toolbar = this.$.toolbar;
+			const toolbar = this.$.toolbar;
 			if (toolbar.children.length === 0) {
 				toolbar.appendChild(node);
 				return;
@@ -279,18 +276,10 @@
 		 */
 
 		_layoutActions() {
-			var elements = this.getEffectiveChildren()
+			const elements = this.getEffectiveChildren()
 					.filter(this._isActionNode)
-					.filter(function (element) {
-						return !element.hidden;
-					}),
-				toolbarElements,
-				menuElements,
-				toolbar = this.$.toolbar,
-				currentWidth,
-				fits,
-				newToolbarElement,
-				newMenuElement;
+					.filter(element => !element.hidden),
+				toolbar = this.$.toolbar;
 
 			this._setHasActions(elements.length > 0 || this.hasExtraItems);
 			if (!this.hasActions) {
@@ -298,21 +287,18 @@
 				return;
 			}
 
-			currentWidth = toolbar.clientWidth;
-			fits = toolbar.scrollWidth <= currentWidth + 1;
+			const currentWidth = toolbar.clientWidth;
+			let fits = toolbar.scrollWidth <= currentWidth + 1;
 
-			toolbarElements = elements.filter(function (element) {
-				if (element.getAttribute('slot') === BOTTOM_BAR_TOOLBAR_SLOT) {
+			const toolbarElements = elements.filter(element => {
+					if (element.getAttribute('slot') === BOTTOM_BAR_TOOLBAR_SLOT) {
 					// make sure we only read scrollWidth and clientWidth until
 					// know that we don't fit
-					fits = fits && element.scrollWidth <= element.clientWidth;
-					return true;
-				}
-			});
-
-			menuElements = elements.filter(function (element) {
-				return element.getAttribute('slot') === BOTTOM_BAR_MENU_SLOT;
-			});
+						fits = fits && element.scrollWidth <= element.clientWidth;
+						return true;
+					}
+				}),
+				menuElements = elements.filter(element => element.getAttribute('slot') === BOTTOM_BAR_MENU_SLOT);
 
 			this._setHasMenuItems(menuElements.length > 0);
 
@@ -320,7 +306,7 @@
 
 			if (fits) {
 				if (this._canAddMoreButtonToBar(currentWidth, toolbarElements, menuElements)) {
-					newToolbarElement = menuElements[0];
+					const newToolbarElement = menuElements[0];
 					this._moveElement(newToolbarElement, true);
 					// (pasleq) If we are moving the focused element from the menu to the toolbar
 					// while the toolbar is open, this will cause an error in iron-control-state
@@ -342,13 +328,13 @@
 				return;
 			}
 
-			newMenuElement = toolbarElements[toolbarElements.length - 1];
+			const newMenuElement = toolbarElements[toolbarElements.length - 1];
 			this._moveElement(newMenuElement, false);
 			this._debounceLayoutActions();
 		},
 
 		_moveElement(element, toToolbar) {
-			var slot = toToolbar ? BOTTOM_BAR_TOOLBAR_SLOT : BOTTOM_BAR_MENU_SLOT,
+			const slot = toToolbar ? BOTTOM_BAR_TOOLBAR_SLOT : BOTTOM_BAR_MENU_SLOT,
 				tabindex = toToolbar ? '0' : '-1';
 
 			element.setAttribute('slot', slot);
@@ -364,7 +350,7 @@
 
 		_canAddMoreButtonToBar(width, bottomBarElements, menuElements) {
 
-			var hasSpace = width > this._overflowWidth || this._overflowWidth === undefined,
+			const hasSpace = width > this._overflowWidth || this._overflowWidth === undefined,
 				hasPlace = bottomBarElements.length < this.maxToolbarItems,
 				hasCandidates = menuElements.length > 0;
 
